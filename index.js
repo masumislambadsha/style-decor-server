@@ -9,7 +9,6 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
-
 app.use(express.json());
 app.use(
   cors({
@@ -18,14 +17,12 @@ app.use(
   })
 );
 
-
 function generateTrackingId() {
   const prefix = "STYL";
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const random = crypto.randomBytes(3).toString("hex").toUpperCase();
   return `${prefix}-${date}-${random}`;
 }
-
 
 const verifyJWT = (req, res, next) => {
   const token = req.headers.authorization;
@@ -41,7 +38,6 @@ const verifyJWT = (req, res, next) => {
     return res.status(401).send({ message: "Unauthorized access" });
   }
 };
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.tadlde2.mongodb.net/?appName=Cluster0`;
 
@@ -120,45 +116,16 @@ async function run() {
         .limit(10);
       const result = await cursor.toArray();
       res.send(result);
-    }); 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    });
+    
+    app.patch("/users/:id/role", verifyJWT, verifyAdmin, async (req, res) => {
+      const { id } = req.params;
+      const { role } = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = { $set: { role } };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
