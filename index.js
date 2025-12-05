@@ -350,6 +350,9 @@ async function run() {
       }
     );
 
+
+    // PAYMENTS RELATED APIs
+
     app.post("/create-checkout-session", verifyJWT, async (req, res) => {
       try {
         const paymentInfo = req.body;
