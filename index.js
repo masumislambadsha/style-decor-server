@@ -273,6 +273,27 @@ async function run() {
       res.send(result);
     });
 
+    app.patch(
+      "/bookings/:id/assign",
+      verifyJWT,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const { decoratorId, decoratorName, decoratorEmail } = req.body;
+        const query = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            decoratorId,
+            decoratorName,
+            decoratorEmail,
+            status: "assigned",
+          },
+        };
+        const result = await bookingsCollection.updateOne(query, updateDoc);
+        res.send(result);
+      }
+    );
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
