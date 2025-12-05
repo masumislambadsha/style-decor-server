@@ -87,6 +87,9 @@ async function run() {
       res.send({ token });
     });
 
+    // USER RELATED APis
+
+    // create user api
     app.post("/users", async (req, res) => {
       const user = req.body;
       user.role = "user";
@@ -101,6 +104,7 @@ async function run() {
       res.send(result);
     });
 
+    // get user api
     app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
       const searchText = req.query.searchText;
       const query = {};
@@ -118,6 +122,7 @@ async function run() {
       res.send(result);
     });
 
+    // update users api
     app.patch("/users/:id/role", verifyJWT, verifyAdmin, async (req, res) => {
       const { id } = req.params;
       const { role } = req.body;
@@ -127,6 +132,7 @@ async function run() {
       res.send(result);
     });
 
+    // analyics api
     app.get("/admin/analytics", verifyJWT, verifyAdmin, async (req, res) => {
       const revenueAgg = await paymentsCollection
         .aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }])
@@ -142,6 +148,7 @@ async function run() {
       });
     });
 
+    // users added api
     app.get("/users/:email/role", verifyJWT, async (req, res) => {
       const email = req.params.email;
       if (email !== req.decoded_email) {
