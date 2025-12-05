@@ -1,42 +1,149 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require("express");
+const cors = require("cors");
+const app = express();
 require("dotenv").config();
+const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.send('Style Server Running')
-})
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
+
+
+function generateTrackingId() {
+  const prefix = "STYL";
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const random = crypto.randomBytes(3).toString("hex").toUpperCase();
+  return `${prefix}-${date}-${random}`;
+}
+
+
+const verifyJWT = (req, res, next) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+
+  try {
+    const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
+    req.decoded_email = decoded.email;
+    next();
+  } catch (err) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+};
+
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.tadlde2.mongodb.net/?appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    // Send a ping to confirm a successful connection
+
+    const db = client.db("styleDecor");
+
+    const usersCollection = db.collection("users");
+    const servicesCollection = db.collection("services");
+    const bookingsCollection = db.collection("bookings");
+    const decoratorsCollection = db.collection("decorators");
+    const paymentsCollection = db.collection("payments");
+
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded_email;
+      const user = await usersCollection.findOne({ email });
+      if (!user || user.role !== "admin") {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+      next();
+    };
+
+    const verifyDecorator = async (req, res, next) => {
+      const email = req.decoded_email;
+      const user = await usersCollection.findOne({ email });
+      if (!user || user.role !== "decorator") {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+      next();
+    };
+
+    app.post("/jwt", (req, res) => {
+      const user = req.body; // { email }
+      const token = jwt.sign(user, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.send({ token });
+    }); // ================= USERS ================= // create user if not exists
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
   }
 }
 run().catch(console.dir);
 
-
-
+app.get("/", (req, res) => {
+  res.send("StyleDecor Server Running");
+});
 
 app.listen(port, () => {
-  console.log(`Style Server Running on port ${port}`)
-})
+  console.log(`StyleDecor server listening on port ${port}`);
+});
