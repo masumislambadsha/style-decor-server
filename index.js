@@ -162,6 +162,13 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/services", verifyJWT, verifyAdmin, async (req, res) => {
+      const service = req.body;
+      service.createdAt = new Date();
+      const result = await servicesCollection.insertOne(service);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
