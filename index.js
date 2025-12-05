@@ -158,6 +158,10 @@ async function run() {
       res.send({ role: user?.role || "user" });
     });
 
+
+    // SERVICES APIs
+
+    // get services api
     app.get("/services", async (req, res) => {
       const { name, type, minBudget, maxBudget } = req.query;
       const query = {};
@@ -177,6 +181,7 @@ async function run() {
       res.send(result);
     });
 
+    // get single services apii
     app.get("/services/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -184,6 +189,7 @@ async function run() {
       res.send(result);
     });
 
+    // create service api
     app.post("/services", verifyJWT, verifyAdmin, async (req, res) => {
       const service = req.body;
       service.createdAt = new Date();
@@ -191,6 +197,7 @@ async function run() {
       res.send(result);
     });
 
+    // update service api
     app.patch("/services/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const updateData = req.body;
@@ -200,6 +207,7 @@ async function run() {
       res.send(result);
     });
 
+    // delete service api
     app.delete("/services/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
