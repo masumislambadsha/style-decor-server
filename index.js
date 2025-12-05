@@ -84,7 +84,7 @@ async function run() {
     };
 
     app.post("/jwt", (req, res) => {
-      const user = req.body; 
+      const user = req.body;
       const token = jwt.sign(user, process.env.JWT_SECRET, {
         expiresIn: "7d",
       });
@@ -105,7 +105,22 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
+      const searchText = req.query.searchText;
+      const query = {};
 
+      if (searchText) {
+        const regex = { $regex: searchText, $options: "i" };
+        query.$or = [{ displayName: regex }, { email: regex }];
+      }
+
+      const cursor = usersCollection
+        .find(query)
+        .sort({ createdAt: -1 })
+        .limit(10);
+      const result = await cursor.toArray();
+      res.send(result);
+    }); 
 
 
 
