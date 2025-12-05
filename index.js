@@ -243,6 +243,28 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/bookings", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const { status, sortBy } = req.query;
+      const query = {};
+
+      if (email) query.userEmail = email;
+      if (status) query.status = status;
+
+      let cursor = bookingsCollection.find(query);
+
+      if (sortBy === "date") {
+        cursor = cursor.sort({ eventDate: -1 });
+      } else if (sortBy === "status") {
+        cursor = cursor.sort({ status: 1 });
+      } else {
+        cursor = cursor.sort({ createdAt: -1 });
+      }
+
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
