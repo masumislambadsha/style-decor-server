@@ -65,6 +65,15 @@ async function run() {
     const decoratorsCollection = db.collection("decorators");
     const paymentsCollection = db.collection("payments");
 
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded_email;
+      const user = await usersCollection.findOne({ email });
+      if (!user || user.role !== "admin") {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+      next();
+    };
+
     const verifyDecorator = async (req, res, next) => {
       const email = req.decoded_email;
       const user = await usersCollection.findOne({ email });
