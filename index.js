@@ -169,6 +169,15 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/services/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = { $set: updateData };
+      const result = await servicesCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
