@@ -84,14 +84,26 @@ async function run() {
     };
 
     app.post("/jwt", (req, res) => {
-      const user = req.body; // { email }
+      const user = req.body; 
       const token = jwt.sign(user, process.env.JWT_SECRET, {
         expiresIn: "7d",
       });
       res.send({ token });
     });
 
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      user.role = "user";
+      user.createdAt = new Date();
 
+      const exists = await usersCollection.findOne({ email: user.email });
+      if (exists) {
+        return res.send({ message: "User already exists" });
+      }
+
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
 
 
 
