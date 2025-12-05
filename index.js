@@ -208,6 +208,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/decorator/bookings",verifyJWT,verifyDecorator,async (req, res) => {
+        const email = req.decoded_email;
+        const query = { decoratorEmail: email };
+        const cursor = bookingsCollection.find(query).sort({ eventDate: 1 });
+        const result = await cursor.toArray();
+        res.send(result);
+      }
+    );
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
