@@ -194,6 +194,20 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/decorators", async (req, res) => {
+      const { name, specialty } = req.query;
+      const query = { status: "active" };
+
+      if (name) query.name = { $regex: name, $options: "i" };
+      if (specialty) query.specialty = specialty;
+
+      const cursor = decoratorsCollection
+        .find(query)
+        .sort({ rating: -1, createdAt: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
