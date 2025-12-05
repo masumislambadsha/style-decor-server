@@ -285,14 +285,9 @@ async function run() {
       }
     );
 
-    app.post("/bookings", verifyJWT, async (req, res) => {
-      const booking = req.body;
-      booking.createdAt = new Date();
-      booking.status = "pending_payment";
-      const result = await bookingsCollection.insertOne(booking);
-      res.send(result);
-    });
+    //BOOKING RELATED APIs
 
+    //get booking api
     app.get("/bookings", verifyJWT, async (req, res) => {
       const email = req.query.email;
       const { status, sortBy } = req.query;
@@ -315,6 +310,16 @@ async function run() {
       res.send(result);
     });
 
+    // create booking apii
+    app.post("/bookings", verifyJWT, async (req, res) => {
+      const booking = req.body;
+      booking.createdAt = new Date();
+      booking.status = "pending_payment";
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    // delete booking api
     app.patch("/bookings/:id/cancel", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -323,6 +328,7 @@ async function run() {
       res.send(result);
     });
 
+    // assinging and managin bookings api
     app.patch(
       "/bookings/:id/assign",
       verifyJWT,
