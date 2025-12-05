@@ -117,7 +117,7 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-    
+
     app.patch("/users/:id/role", verifyJWT, verifyAdmin, async (req, res) => {
       const { id } = req.params;
       const { role } = req.body;
@@ -125,6 +125,15 @@ async function run() {
       const updateDoc = { $set: { role } };
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
+    });
+
+    app.get("/users/:email/role", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded_email) {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+      const user = await usersCollection.findOne({ email });
+      res.send({ role: user?.role || "user" });
     });
 
     await client.db("admin").command({ ping: 1 });
