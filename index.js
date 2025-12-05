@@ -208,11 +208,25 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/decorator/bookings",verifyJWT,verifyDecorator,async (req, res) => {
+    app.get(
+      "/decorator/bookings",
+      verifyJWT,
+      verifyDecorator,
+      async (req, res) => {
         const email = req.decoded_email;
         const query = { decoratorEmail: email };
         const cursor = bookingsCollection.find(query).sort({ eventDate: 1 });
         const result = await cursor.toArray();
+        res.send(result);
+      }
+    );
+
+    app.patch("/decorator/bookings/:id/status",verifyJWT,verifyDecorator,async (req, res) => {
+        const id = req.params.id;
+        const { status } = req.body;
+        const query = { _id: new ObjectId(id) };
+        const updateDoc = { $set: { status } };
+        const result = await bookingsCollection.updateOne(query, updateDoc);
         res.send(result);
       }
     );
