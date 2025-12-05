@@ -221,7 +221,11 @@ async function run() {
       }
     );
 
-    app.patch("/decorator/bookings/:id/status",verifyJWT,verifyDecorator,async (req, res) => {
+    app.patch(
+      "/decorator/bookings/:id/status",
+      verifyJWT,
+      verifyDecorator,
+      async (req, res) => {
         const id = req.params.id;
         const { status } = req.body;
         const query = { _id: new ObjectId(id) };
@@ -230,6 +234,14 @@ async function run() {
         res.send(result);
       }
     );
+
+    app.post("/bookings", verifyJWT, async (req, res) => {
+      const booking = req.body;
+      booking.createdAt = new Date();
+      booking.status = "pending_payment";
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
