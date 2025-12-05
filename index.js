@@ -294,6 +294,106 @@ async function run() {
       }
     );
 
+    app.post("/create-checkout-session", verifyJWT, async (req, res) => {
+      try {
+        const paymentInfo = req.body;
+        const amount = parseInt(paymentInfo.cost, 10) * 100;
+
+        const session = await stripe.checkout.sessions.create({
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                unit_amount: amount,
+                product_data: {
+                  name: paymentInfo.serviceName,
+                },
+              },
+              quantity: 1,
+            },
+          ],
+          metadata: {
+            bookingId: paymentInfo.bookingId,
+            serviceName: paymentInfo.serviceName,
+          },
+          mode: "payment",
+          customer_email: paymentInfo.userEmail,
+          success_url: `${process.env.SITE_DOMAIN}/dashboard/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${process.env.SITE_DOMAIN}/dashboard/payment-cancelled`,
+        });
+
+        res.send({ url: session.url });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+    app.patch("/payment-success", async (req, res) => {
+      const sessionId = req.query.session_id;
+
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const transactionId = session.payment_intent;
+
+      const exists = await paymentsCollection.findOne({ transactionId });
+      if (exists) {
+        return res.send({
+          message: "Already paid",
+          transactionId,
+          trackingId: exists.trackingId,
+          success: true,
+        });
+      }
+
+      const trackingId = generateTrackingId();
+
+      if (session.payment_status === "paid") {
+        const bookingId = session.metadata.bookingId;
+        const query = { _id: new ObjectId(bookingId) };
+        const update = {
+          $set: {
+            paymentStatus: "paid",
+            status: "assigned_pending",
+            trackingId: trackingId,
+          },
+        };
+        await bookingsCollection.updateOne(query, update);
+
+        const payment = {
+          amount: session.amount_total / 100,
+          currency: session.currency,
+          customerEmail: session.customer_email,
+          bookingId: session.metadata.bookingId,
+          serviceName: session.metadata.serviceName,
+          transactionId: transactionId,
+          paymentStatus: session.payment_status,
+          paidAt: new Date(),
+          trackingId: trackingId,
+        };
+        await paymentsCollection.insertOne(payment);
+
+        return res.send({
+          transactionId,
+          trackingId,
+          success: true,
+        });
+      }
+
+      res.send({ success: false });
+    });
+
+    app.get("/payments", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      if (!email || email !== req.decoded_email) {
+        return res.status(403).send({ message: "Forbidden access" });
+      }
+      const cursor = paymentsCollection
+        .find({ customerEmail: email })
+        .sort({ paidAt: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
