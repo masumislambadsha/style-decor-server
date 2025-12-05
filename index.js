@@ -185,6 +185,15 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/decorators", verifyJWT, verifyAdmin, async (req, res) => {
+      const decorator = req.body;
+      decorator.createdAt = new Date();
+      decorator.status = "active";
+      decorator.earnings = 0;
+      const result = await decoratorsCollection.insertOne(decorator);
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
