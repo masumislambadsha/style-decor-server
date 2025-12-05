@@ -127,6 +127,21 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/admin/analytics", verifyJWT, verifyAdmin, async (req, res) => {
+      const revenueAgg = await paymentsCollection
+        .aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }])
+        .toArray();
+
+      const serviceDemand = await bookingsCollection
+        .aggregate([{ $group: { _id: "$serviceId", count: { $sum: 1 } } }])
+        .toArray();
+
+      res.send({
+        totalRevenue: revenueAgg[0]?.total || 0,
+        serviceDemand,
+      });
+    });
+
     app.get("/users/:email/role", verifyJWT, async (req, res) => {
       const email = req.params.email;
       if (email !== req.decoded_email) {
