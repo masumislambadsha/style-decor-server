@@ -136,6 +136,25 @@ async function run() {
       res.send({ role: user?.role || "user" });
     });
 
+    app.get("/services", async (req, res) => {
+      const { name, type, minBudget, maxBudget } = req.query;
+      const query = {};
+      if (name) {
+        query.service_name = { $regex: name, $options: "i" };
+      }
+      if (type) {
+        query.service_category = type;
+      }
+      if (minBudget || maxBudget) {
+        query.cost = {};
+        if (minBudget) query.cost.$gte = Number(minBudget);
+        if (maxBudget) query.cost.$lte = Number(maxBudget);
+      }
+      const cursor = servicesCollection.find(query).sort({ createdAt: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged deployment. Connected to MongoDB.");
   } finally {
