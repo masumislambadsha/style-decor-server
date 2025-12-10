@@ -982,10 +982,10 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("✅ StyleDecor Server Running");
+  res.send("StyleDecor Server Running");
 });
 
 // app.listen(port, () => {
-//   console.log(`🚀 StyleDecor server listening on port ${port}`);
+//   console.log(`StyleDecor server listening on port ${port}`);
 // });
 module.exports = app;
