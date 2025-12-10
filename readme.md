@@ -20,8 +20,8 @@ Short purpose
 ---
 
 ## 🔗 Live URL
-- Production: `https://api.style-decor.example.com` (replace with actual URL)
-- Staging: `https://staging.style-decor.example.com` (optional)
+- Production: `https://style-decor-server-two.vercel.app/` (replace with actual URL)
+- Staging: `https://style-decor-server-two.vercel.app/` (optional)
 
 ---
 
@@ -173,7 +173,7 @@ This project is licensed under the MIT License. See [LICENSE](./LICENSE) for det
 
 ## 🤝 Connect
 - GitHub: [masumislambadsha](https://github.com/masumislambadsha)
-- Email: <mohammadbadsha468@example.com>
+- Email: <mohammadbadsha468@gmail.com>
 - Linkedin :  [Masum Islam Badsha](https://www.linkedin.com/in/masum-islam-badsha/)
 
 ---
